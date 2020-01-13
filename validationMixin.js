@@ -10,7 +10,6 @@ function getVue(rootVm) {
   if (_cachedVue) return _cachedVue;
   let Vue = rootVm.constructor;
   while (Vue.super) {
-    np;
     Vue = Vue.super;
   }
   _cachedVue = Vue;
