@@ -4,33 +4,38 @@ import toPath from "lodash/toPath";
 import { withParams } from "vuelidate/lib/validators/common";
 
 export const serverValidityRuleKey = "serverValidity"; // TODO give user ability to customize
+const _cache = {
+  Vue: null,
+  ValidityStateComponent: null
+};
 
-let _cachedVue = null;
 function getVue(rootVm) {
-  if (_cachedVue) return _cachedVue;
+  // TODO can we use import Vue instead of it?
+  if (_cache.Vue) return _cache.Vue;
   let Vue = rootVm.constructor;
   while (Vue.super) {
     Vue = Vue.super;
   }
-  _cachedVue = Vue;
+  _cache.Vue = Vue;
   return Vue;
 }
 
-let _cachedComponent = null;
-const getComponent = Vue => {
-  if (_cachedComponent) {
-    return _cachedComponent;
+// TODO rename to getValidationComponent or getValidationStateComponent or getValidityStateComponentConstructor
+const getValidityStateComponentConstructor = Vue => {
+  // компонент с валидацией, который имеет ссылку на валидируемый компонент и нужен, чтоб не хранить эти поля в валидируемом объекте
+  if (_cache.ValidityStateComponent) {
+    return _cache.ValidityStateComponent;
   }
 
   const component = Vue.extend({
     data: () => ({
-      serverPaths: [],
-      serverMap: {},
+      serverPaths: [], // TODO think how to rename it
+      serverMap: {}, // TODO think how to rename it
       serverFieldErrors: {}
     }),
     computed: {
       validation() {
-        return this.model.$v;
+        return this.validatedComponent.$v;
       },
       proxy() {
         return {
@@ -58,7 +63,7 @@ const getComponent = Vue => {
           const pathArray = toPath(path);
           if (pathArray[pathArray.length - 1] === "*") {
             path = path.slice(0, -2);
-            const observable = get(this.model, path);
+            const observable = get(this.validatedComponent, path);
             Object.keys(observable).forEach(field => {
               validation[field] = this.addValidations(`${path}.${field}`);
             });
@@ -106,20 +111,20 @@ const getComponent = Vue => {
     }
   });
 
-  _cachedComponent = component;
-  return _cachedComponent;
+  _cache.ValidityStateComponent = component;
+  return _cache.ValidityStateComponent;
 };
 
-const validateModel = (model, settings) => {
-  const Vue = getVue(model);
-  const component = getComponent(Vue);
-  return new component({
+const createValidityStateComponent = (validatedComponent, settings) => {
+  const Vue = getVue(validatedComponent);
+  const ValidityStateComponent = getValidityStateComponentConstructor(Vue);
+  return new ValidityStateComponent({
     data: () => ({
       ...settings
     }),
     computed: {
-      model() {
-        return model;
+      validatedComponent() {
+        return validatedComponent;
       }
     }
   });
@@ -143,24 +148,36 @@ const validateModel = (model, settings) => {
  *      }
  *      `proxyPath: 'form.data'` be return `{ name: 'ivan', secondName: 'ivanov' }`
  */
+function getValidationSettings(component) {
+  return component.$options.validationSettings || {};
+}
+
+function isValidationEnabledForComponent(component) {
+  const settings = getValidationSettings(component);
+  return !!component.$options.validations || !!settings.serverPaths;
+}
+
 export const validationServerMixin = {
   data() {
-    const settings = this.$options.validationSettings || {};
-    if (this.$options.validations || !!settings.serverPaths) {
-      this._validationSettings = validateModel(this, settings);
+    const settings = getValidationSettings(this); // TODO move to beforeCreate if it's possible
+    if (isValidationEnabledForComponent(this)) {
+      this._validityStateComponent = createValidityStateComponent(
+        this,
+        settings // TODO maybe don't pass settings? we have everything to get it inside
+      );
     }
     return {};
   },
   beforeCreate() {
+    if (!isValidationEnabledForComponent(this)) return;
     const options = this.$options;
-    const settings = options.validationSettings || {};
-    if (!options.validations && !settings.serverPaths) return;
     const Vue = getVue(this);
     options.validations = Vue.config.optionMergeStrategies.provide(
+      // TODO change to validations strategy
       options.validations,
       function() {
         if (this.$validationHelper) {
-          return this._validationSettings.getValidations();
+          return this._validityStateComponent.getValidations();
         }
       },
 
@@ -169,17 +186,20 @@ export const validationServerMixin = {
     if (!options.computed) options.computed = {};
     if (options.computed.$validationHelper) return;
     options.computed.$validationHelper = function() {
-      return this._validationSettings ? this._validationSettings.proxy : null;
+      // TODO Rename to $validationHelpers or smth better
+      return this._validityStateComponent
+        ? this._validityStateComponent.proxy
+        : null;
     };
   },
   beforeDestroy() {
-    if (this._validationSettings) {
-      this._validationSettings.$destroy();
-      this._validationSettings = null;
+    if (this._validityStateComponent) {
+      this._validityStateComponent.$destroy();
+      this._validityStateComponent = null;
     }
   },
   provide() {
-    const settings = this.$options.validationSettings || {};
+    const settings = getValidationSettings(this);
     const getValidationProxyPath = () => {
       return (
         (typeof settings.proxyPath === "function"
