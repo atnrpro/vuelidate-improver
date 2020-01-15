@@ -115,12 +115,17 @@ const getValidityStateComponentConstructor = Vue => {
   return _cache.ValidityStateComponent;
 };
 
-const createValidityStateComponent = (validatedComponent, settings) => {
+const createValidityStateComponent = (
+  validatedComponent,
+  { serverPaths = [], serverMap = {}, serverFieldErrors = {} }
+) => {
   const Vue = getVue(validatedComponent);
   const ValidityStateComponent = getValidityStateComponentConstructor(Vue);
   return new ValidityStateComponent({
     data: () => ({
-      ...settings
+      serverPaths,
+      serverMap,
+      serverFieldErrors
     }),
     computed: {
       validatedComponent() {
@@ -149,7 +154,18 @@ const createValidityStateComponent = (validatedComponent, settings) => {
  *      `proxyPath: 'form.data'` be return `{ name: 'ivan', secondName: 'ivanov' }`
  */
 function getValidationSettings(component) {
-  return component.$options.validationSettings || {};
+  let settings = { ...component.$options.validationSettings } || {};
+  Object.defineProperty(settings, "proxyPath", {
+    get() {
+      const settingsObj = component.$options.validationSettings || {}; // TODO refactor
+      return (
+        (typeof settingsObj.proxyPath === "function"
+          ? settingsObj.proxyPath.call(component)
+          : settingsObj.proxyPath) || ""
+      );
+    }
+  });
+  return settings;
 }
 
 function isValidationEnabledForComponent(component) {
@@ -200,36 +216,29 @@ export const validationServerMixin = {
   },
   provide() {
     const settings = getValidationSettings(this);
-    const getValidationProxyPath = () => {
-      return (
-        (typeof settings.proxyPath === "function"
-          ? settings.proxyPath.call(this)
-          : settings.proxyPath) || ""
-      );
-    };
     if (this.$validationHelper) {
       return {
         getValidationByPath: path => {
           if (settings.proxyPath) {
-            path = `${getValidationProxyPath()}.${path}`;
+            path = `${settings.proxyPath}.${path}`;
           }
           return this.$validationHelper.getValidationByPath(path);
         },
         getCustomServerErrorTextFor: this.$validationHelper.getErrorTextFor,
-        getValidationProxyPath: getValidationProxyPath
+        getValidationProxyPath: () => settings.proxyPath
       };
     }
     if (settings.proxyPath && this.getPreviewValidationByPath) {
       return {
         getValidationByPath: path => {
-          const proxyPath = getValidationProxyPath();
-          return this.getPreviewValidationByPath(`${proxyPath}.${path}`);
+          return this.getPreviewValidationByPath(
+            `${settings.proxyPath}.${path}`
+          );
         },
         getValidationProxyPath: () => {
-          const proxyPath = getValidationProxyPath();
           const previewProxyPath = this.getPreviewValidationProxyPath();
           return previewProxyPath
-            ? `${previewProxyPath}.${proxyPath}`
+            ? `${previewProxyPath}.${settings.proxyPath}`
             : proxyPath;
         }
       };
