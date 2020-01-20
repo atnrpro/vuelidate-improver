@@ -192,7 +192,7 @@ export const validationServerMixin = {
       // TODO change to validations strategy
       options.validations,
       function() {
-        if (this.$validationHelper) {
+        if (this.$validationHelpers) {
           return this._validityStateComponent.getValidations();
         }
       },
@@ -200,8 +200,8 @@ export const validationServerMixin = {
       this
     );
     if (!options.computed) options.computed = {};
-    if (options.computed.$validationHelper) return;
-    options.computed.$validationHelper = function() {
+    if (options.computed.$validationHelpers) return;
+    options.computed.$validationHelpers = function() {
       // TODO Rename to $validationHelpers or smth better
       return this._validityStateComponent
         ? this._validityStateComponent.proxy
@@ -216,15 +216,15 @@ export const validationServerMixin = {
   },
   provide() {
     const settings = getValidationSettings(this);
-    if (this.$validationHelper) {
+    if (this.$validationHelpers) {
       return {
         getValidationByPath: path => {
           if (settings.proxyPath) {
             path = `${settings.proxyPath}.${path}`;
           }
-          return this.$validationHelper.getValidationByPath(path);
+          return this.$validationHelpers.getValidationByPath(path);
         },
-        getCustomServerErrorTextFor: this.$validationHelper.getErrorTextFor,
+        getCustomServerErrorTextFor: this.$validationHelpers.getErrorTextFor,
         getValidationProxyPath: () => settings.proxyPath
       };
     }
