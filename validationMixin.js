@@ -156,6 +156,7 @@ const createValidityStateComponent = (
 function getValidationSettings(component) {
   let settings = { ...component.$options.validationSettings } || {};
   Object.defineProperty(settings, "proxyPath", {
+    // TODO maybe make function? because everyone wants to make destruct of proxypath :)
     get() {
       const settingsObj = component.$options.validationSettings || {}; // TODO refactor
       return (
@@ -171,6 +172,46 @@ function getValidationSettings(component) {
 function isValidationEnabledForComponent(component) {
   const settings = getValidationSettings(component);
   return !!component.$options.validations || !!settings.serverPaths;
+}
+
+function getProvideForRootComponent(validationHelpers, settings) {
+  return {
+    getValidationByPath: path => {
+      if (settings.proxyPath) {
+        path = `${settings.proxyPath}.${path}`;
+      }
+      return validationHelpers.getValidationByPath(path);
+    },
+    getCustomServerErrorTextFor: validationHelpers.getErrorTextFor,
+    getValidationProxyPath: () => settings.proxyPath
+  };
+}
+
+function getProvideForChildComponent(component, settings) {
+  if (settings.proxyPath && !component.getParentValidationByPath) {
+    console.error(
+      "Component has proxyPath, but doesn't have a parent",
+      component
+    );
+  }
+  const isChildWithProxyPath =
+    settings.proxyPath && component.getParentValidationByPath;
+  if (!isChildWithProxyPath) {
+    return {};
+  }
+  return {
+    getValidationByPath: path => {
+      return component.getParentValidationByPath(
+        `${settings.proxyPath}.${path}`
+      );
+    },
+    getValidationProxyPath: () => {
+      const parentProxyPath = component.getParentValidationProxyPath();
+      return parentProxyPath
+        ? `${parentProxyPath}.${settings.proxyPath}`
+        : settings.proxyPath;
+    }
+  };
 }
 
 export const validationServerMixin = {
@@ -216,41 +257,18 @@ export const validationServerMixin = {
   },
   provide() {
     const settings = getValidationSettings(this);
-    if (this.$validationHelpers) {
-      return {
-        getValidationByPath: path => {
-          if (settings.proxyPath) {
-            path = `${settings.proxyPath}.${path}`;
-          }
-          return this.$validationHelpers.getValidationByPath(path);
-        },
-        getCustomServerErrorTextFor: this.$validationHelpers.getErrorTextFor,
-        getValidationProxyPath: () => settings.proxyPath
-      };
+    const isRootValidationComponent = !!this.$validationHelpers;
+    if (isRootValidationComponent) {
+      return getProvideForRootComponent(this.$validationHelpers, settings);
     }
-    if (settings.proxyPath && this.getPreviewValidationByPath) {
-      return {
-        getValidationByPath: path => {
-          return this.getPreviewValidationByPath(
-            `${settings.proxyPath}.${path}`
-          );
-        },
-        getValidationProxyPath: () => {
-          const previewProxyPath = this.getPreviewValidationProxyPath();
-          return previewProxyPath
-            ? `${previewProxyPath}.${settings.proxyPath}`
-            : proxyPath;
-        }
-      };
-    }
-    return {};
+    return getProvideForChildComponent(this, settings);
   },
   inject: {
-    getPreviewValidationByPath: {
+    getParentValidationByPath: {
       from: "getValidationByPath",
       default: null
     },
-    getPreviewValidationProxyPath: {
+    getParentValidationProxyPath: {
       from: "getValidationProxyPath",
       default: ""
     }
