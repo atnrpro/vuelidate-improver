@@ -1,5 +1,6 @@
 <script>
 import toPath from 'lodash/toPath';
+import { serverValidityRuleKey } from './validationMixin';
 
 const passwordMinLength = 6;
 const errorsTexts = { // TODO how to make it customizeble?
@@ -8,6 +9,7 @@ const errorsTexts = { // TODO how to make it customizeble?
   sameAs: 'Пароли не совпадают',
   minLength: `Пароль должен быть не менее ${passwordMinLength} символов`,
 };
+const defaultErrorText = 'Ошибка!';
 
 export default {
   name: 'ValidateField',
@@ -15,7 +17,7 @@ export default {
     getValidationByPath: {
       default: () => () => {},
     },
-    getCustomServerErrorTextFor: {
+    getServerErrorTextFor: {
       default: () => () => {},
     },
     getValidationProxyPath: {
@@ -50,24 +52,22 @@ export default {
     },
     validationPath() {
       const proxyPath = this.getValidationProxyPath();
-      return proxyPath !== '' ? `${this.getValidationProxyPath()}.${this.path}` : this.path;
+      return proxyPath !== '' ? `${proxyPath}.${this.path}` : this.path;
     },
-    customServerError() {
-      return this.getCustomServerErrorTextFor(this.validationPath, this.name) || {};
-    },
-    customErrors() {
-      return Object.assign({}, this.customServerError, this.customErrorsTexts);
+    serverError() {
+      return { [serverValidityRuleKey]: this.getServerErrorTextFor(this.validationPath, this.name) };
     },
     errorMessage() {
-      if (!this.validationByPath) {
+      const validationDoesntExist = !this.validationByPath;
+      if (validationDoesntExist) {
         return null;
       }
-      const keys = Object.keys(this.validationByPath.$params);
-      const invalidKey = keys.find(k => !this.validationByPath[k]);
+      const rulesKeys = Object.keys(this.validationByPath.$params);
+      const invalidKey = rulesKeys.find(k => !this.validationByPath[k]);
       if (!invalidKey) {
         return null;
       }
-      return this.customErrors[invalidKey] || errorsTexts[invalidKey] || 'Ошибка!';
+      return this.serverError[invalidKey] || this.customErrorsTexts[invalidKey] || errorsTexts[invalidKey] || defaultErrorText;
     },
     showError() {
       return !!this.errorMessage && this.validationByPath.$dirty;

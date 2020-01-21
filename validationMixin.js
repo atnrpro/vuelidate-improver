@@ -98,15 +98,12 @@ const getValidityStateComponentConstructor = Vue => {
       setErrors(errors = {}) {
         this.serverFieldErrors = errors;
       },
-      setErrorsFor(field, error) {
-        this.serverFieldErrors[field] = error;
+      setErrorsFor(field, errors) {
+        this.serverFieldErrors[field] = errors;
       },
       getErrorTextFor(path, field) {
         const serverField = this.serverMap[path] || field;
-        return {
-          [serverValidityRuleKey]:
-            this.serverFieldErrors && this.serverFieldErrors[serverField]
-        };
+        return this.serverFieldErrors && this.serverFieldErrors[serverField];
       }
     }
   });
@@ -182,7 +179,7 @@ function getProvideForRootComponent(validationHelpers, settings) {
       }
       return validationHelpers.getValidationByPath(path);
     },
-    getCustomServerErrorTextFor: validationHelpers.getErrorTextFor,
+    getServerErrorTextFor: validationHelpers.getErrorTextFor,
     getValidationProxyPath: () => settings.proxyPath
   };
 }
