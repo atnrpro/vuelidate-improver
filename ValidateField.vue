@@ -40,7 +40,7 @@ export default {
         errorMessage: this.errorMessage,
         showError: this.showError,
         validation: this.validationByPath,
-        validationPath: this.validationPath,
+        validationPath: this.validationPath, // TODO still we need it?
       };
     },
     name() {
@@ -78,7 +78,7 @@ export default {
       return this.$scopedSlots.default(this.fieldProps) || null;
     }
 
-    return this.$slots.default || [];
+    return this.$slots.default || []; // TODO should we throw error if there is nothing to render? If child component has conditional rendering there can be a problem if we throw an error
   },
 };
 </script>
