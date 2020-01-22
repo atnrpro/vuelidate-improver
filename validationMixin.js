@@ -168,7 +168,10 @@ function getValidationSettings(component) {
 
 function isValidationEnabledForComponent(component) {
   const settings = getValidationSettings(component);
-  return !!component.$options.validations || !!settings.serverPaths;
+  return (
+    !!component.$options.validations ||
+    !!(settings.serverPaths && settings.serverPaths.length)
+  );
 }
 
 function getProvideForRootComponent(validationHelpers, settings) {
