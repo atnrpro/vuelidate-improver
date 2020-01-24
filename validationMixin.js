@@ -1,7 +1,7 @@
-import get from "lodash/get";
-import set from "lodash/set";
-import toPath from "lodash/toPath";
-import { withParams } from "vuelidate/lib/validators/common";
+import get from 'lodash/get'
+import set from 'lodash/set'
+import toPath from 'lodash/toPath'
+import { withParams } from 'vuelidate/lib/validators/common'
 
 export const serverValidityRuleKey = "serverValidity"; // TODO give user ability to customize
 const _cache = {
@@ -151,19 +151,7 @@ const createValidityStateComponent = (
  *      `proxyPath: 'form.data'` be return `{ name: 'ivan', secondName: 'ivanov' }`
  */
 function getValidationSettings(component) {
-  let settings = { ...component.$options.validationSettings } || {};
-  Object.defineProperty(settings, "proxyPath", {
-    // TODO maybe make function? because everyone wants to make destruct of proxypath :)
-    get() {
-      const settingsObj = component.$options.validationSettings || {}; // TODO refactor
-      return (
-        (typeof settingsObj.proxyPath === "function"
-          ? settingsObj.proxyPath.call(component)
-          : settingsObj.proxyPath) || ""
-      );
-    }
-  });
-  return settings;
+  return { ...component.$options.validationSettings } || {};
 }
 
 function isValidationEnabledForComponent(component) {
@@ -174,43 +162,10 @@ function isValidationEnabledForComponent(component) {
   );
 }
 
-function getProvideForRootComponent(validationHelpers, settings) {
+function getProvideForRootComponent(validationHelpers) {
   return {
-    getValidationByPath: path => {
-      if (settings.proxyPath) {
-        path = `${settings.proxyPath}.${path}`;
-      }
-      return validationHelpers.getValidationByPath(path);
-    },
+    getValidationByPath: validationHelpers.getValidationByPath,
     getServerErrorTextFor: validationHelpers.getErrorTextFor,
-    getValidationProxyPath: () => settings.proxyPath
-  };
-}
-
-function getProvideForChildComponent(component, settings) {
-  if (settings.proxyPath && !component.getParentValidationByPath) {
-    console.error(
-      "Component has proxyPath, but doesn't have a parent",
-      component
-    );
-  }
-  const isChildWithProxyPath =
-    settings.proxyPath && component.getParentValidationByPath;
-  if (!isChildWithProxyPath) {
-    return {};
-  }
-  return {
-    getValidationByPath: path => {
-      return component.getParentValidationByPath(
-        `${settings.proxyPath}.${path}`
-      );
-    },
-    getValidationProxyPath: () => {
-      const parentProxyPath = component.getParentValidationProxyPath();
-      return parentProxyPath
-        ? `${parentProxyPath}.${settings.proxyPath}`
-        : settings.proxyPath;
-    }
   };
 }
 
@@ -256,23 +211,12 @@ export const validationServerMixin = {
     }
   },
   provide() {
-    const settings = getValidationSettings(this);
     const isRootValidationComponent = !!this.$validationHelpers;
     if (isRootValidationComponent) {
-      return getProvideForRootComponent(this.$validationHelpers, settings);
+      return getProvideForRootComponent(this.$validationHelpers);
     }
-    return getProvideForChildComponent(this, settings);
+    return {};
   },
-  inject: {
-    getParentValidationByPath: {
-      from: "getValidationByPath",
-      default: null
-    },
-    getParentValidationProxyPath: {
-      from: "getValidationProxyPath",
-      default: ""
-    }
-  }
 };
 
 function validationServer(Vue) {
