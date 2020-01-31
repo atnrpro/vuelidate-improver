@@ -73,7 +73,7 @@ export default {
       return !!this.errorMessage && this.validationByPath.$dirty;
     },
   },
-  render() {
+  render() { // TODO use normalizeChildren helper instead of it
     if (this.$scopedSlots.default) {
       return this.$scopedSlots.default(this.fieldProps) || null;
     }
