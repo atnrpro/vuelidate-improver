@@ -1,6 +1,6 @@
 {
   "name": "vuelidate-improver",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Vuelidate improver",
   "main": "validationMixin.js",
   "scripts": {

@@ -21,7 +21,7 @@ export default {
       default: () => () => {},
     },
     getValidationProxyPath: {
-      default: '',
+      default: () => () => '',
     },
   },
   props: {
