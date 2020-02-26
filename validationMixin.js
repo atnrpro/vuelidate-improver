@@ -10,8 +10,9 @@ const _cache = {
 };
 
 function getVue(rootVm) {
-  // TODO can we use import Vue instead of it?
-  if (_cache.Vue) return _cache.Vue;
+  if (_cache.Vue) {
+    return _cache.Vue;
+  }
   let Vue = rootVm.constructor;
   while (Vue.super) {
     Vue = Vue.super;
@@ -20,7 +21,6 @@ function getVue(rootVm) {
   return Vue;
 }
 
-// TODO rename to getValidationComponent or getValidationStateComponent or getValidityStateComponentConstructor
 const getValidityStateComponentConstructor = Vue => {
   // компонент с валидацией, который имеет ссылку на валидируемый компонент и нужен, чтоб не хранить эти поля в валидируемом объекте
   if (_cache.ValidityStateComponent) {
@@ -140,15 +140,6 @@ const createValidityStateComponent = (
  *      form: 'formName',
  *      'form.login': 'serverLoginName'
  *    }
- *  proxyPath: '' - proxy getValidationByPath for path (using in fe/src/components/uikit/VuelidateField.vue). May be string or function => string
- *    example:
- *      form: {
- *        data: {
- *          name: 'ivan',
- *          secondName: 'ivanov'
- *        }
- *      }
- *      `proxyPath: 'form.data'` be return `{ name: 'ivan', secondName: 'ivanov' }`
  */
 function getValidationSettings(component) {
   return { ...component.$options.validationSettings } || {};
@@ -170,35 +161,25 @@ function getProvideForRootComponent(validationHelpers) {
 }
 
 export const validationServerMixin = {
-  data() {
-    const settings = getValidationSettings(this); // TODO move to beforeCreate if it's possible
-    if (isValidationEnabledForComponent(this)) {
-      this._validityStateComponent = createValidityStateComponent(
-        this,
-        settings // TODO maybe don't pass settings? we have everything to get it inside
-      );
-    }
-    return {};
-  },
   beforeCreate() {
     if (!isValidationEnabledForComponent(this)) return;
+
+    const settings = getValidationSettings(this);
+    this._validityStateComponent = createValidityStateComponent(this, settings);
     const options = this.$options;
     const Vue = getVue(this);
-    options.validations = Vue.config.optionMergeStrategies.provide(
-      // TODO change to validations strategy
-      options.validations,
+    options.validations = Vue.config.optionMergeStrategies.validations(
       function() {
         if (this.$validationHelpers) {
           return this._validityStateComponent.getValidations();
         }
       },
-
+      options.validations,
       this
     );
     if (!options.computed) options.computed = {};
     if (options.computed.$validationHelpers) return;
     options.computed.$validationHelpers = function() {
-      // TODO Rename to $validationHelpers or smth better
       return this._validityStateComponent
         ? this._validityStateComponent.proxy
         : null;

@@ -1,9 +1,10 @@
 <script>
 import toPath from 'lodash/toPath';
 import { serverValidityRuleKey } from './validationMixin';
+import { normalizeChildren } from './utils'
 
 const passwordMinLength = 6;
-const errorsTexts = { // TODO how to make it customizeble?
+const errorsTexts = { // TODO how to make it customizeble? mb it doesn't need where? and use third party library? for example https://github.com/dobromir-hristov/vuelidate-error-extractor
   required: 'Заполните поле',
   email: 'Неверный формат',
   sameAs: 'Пароли не совпадают',
@@ -73,12 +74,8 @@ export default {
       return !!this.errorMessage && this.validationByPath.$dirty;
     },
   },
-  render() { // TODO use normalizeChildren helper instead of it
-    if (this.$scopedSlots.default) {
-      return this.$scopedSlots.default(this.fieldProps) || null;
-    }
-
-    return this.$slots.default || []; // TODO should we throw error if there is nothing to render? If child component has conditional rendering there can be a problem if we throw an error
+  render() {
+    return normalizeChildren(this, this.fieldProps);
   },
 };
 </script>
