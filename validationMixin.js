@@ -160,7 +160,7 @@ function getProvideForRootComponent(validationHelpers) {
   };
 }
 
-export const validationServerMixin = {
+export const validationImproverMixin = {
   beforeCreate() {
     if (!isValidationEnabledForComponent(this)) return;
 
@@ -203,7 +203,7 @@ export const validationServerMixin = {
 function validationServer(Vue) {
   Vue.config.optionMergeStrategies.validations =
     Vue.config.optionMergeStrategies.provide;
-  Vue.mixin(validationServerMixin);
+  Vue.mixin(validationImproverMixin);
 }
 
 export default validationServer;
