@@ -1,4 +1,5 @@
 # vuelidate-improver
+[![dependencies Status](https://david-dm.org/atnrpro/vuelidate-improver/status.svg)](https://david-dm.org/atnrpro/vuelidate-improver)
 
 ## Demo
 
