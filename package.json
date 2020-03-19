@@ -20,11 +20,11 @@
   },
   "homepage": "https://github.com/atnrpro/vuelidate-improver#readme",
   "dependencies": {
-    "lodash": "^4.17.15",
-    "vuelidate": "^0.7.4"
+    "lodash": "^4.17.15"
   },
   "devDependencies": {
-    "standard-version": "^7.1.0"
+    "standard-version": "^7.1.0",
+    "vuelidate": "^0.7.5"
   },
   "scripts": {
     "release": "standard-version -a"
