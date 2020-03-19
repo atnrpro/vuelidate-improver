@@ -27,6 +27,6 @@
     "vuelidate": "^0.7.5"
   },
   "scripts": {
-    "release": "standard-version -a"
+    "release": "standard-version -a & git push --follow-tags origin master"
   }
 }
