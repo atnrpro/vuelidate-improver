@@ -1,16 +1,16 @@
 <script>
-import { normalizeChildren } from './utils'
+import { normalizeChildren } from './utils';
 
 export default {
   name: 'ValidateProxy',
   inject: {
     getParentValidationByPath: {
-      from: "getValidationByPath",
+      from: 'getValidationByPath',
     },
     getParentValidationProxyPath: {
-      from: "getValidationProxyPath",
+      from: 'getValidationProxyPath',
       default: () => () => {},
-    }
+    },
   },
   props: {
     path: {
@@ -23,7 +23,7 @@ export default {
     },
     tag: {
       type: String,
-      default: 'div'
+      default: 'div',
     },
   },
   computed: {
@@ -34,21 +34,22 @@ export default {
     },
     fullProxyPath() {
       const parentProxyPath = this.getParentValidationProxyPath();
-      return parentProxyPath
-        ? `${parentProxyPath}.${this.path}`
-        : this.path;
+      return parentProxyPath ? `${parentProxyPath}.${this.path}` : this.path;
     },
   },
   provide() {
     return {
-      getValidationByPath: path => this.getParentValidationByPath(`${this.path}.${path}`),
+      getValidationByPath: path =>
+        this.getParentValidationByPath(`${this.path}.${path}`),
       getValidationProxyPath: () => this.fullProxyPath,
     };
   },
   render(h) {
     const children = normalizeChildren(this, this.slotProps);
 
-    return this.slim && children.length <= 1 ? children[0] : h(this.tag, { on: this.$listeners }, children);
+    return this.slim && children.length <= 1
+      ? children[0]
+      : h(this.tag, { on: this.$listeners }, children);
   },
 };
 </script>

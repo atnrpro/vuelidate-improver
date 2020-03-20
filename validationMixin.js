@@ -1,12 +1,12 @@
-import get from 'lodash/get'
-import set from 'lodash/set'
-import toPath from 'lodash/toPath'
-import { withParams } from 'vuelidate/lib/validators/common'
+import get from 'lodash/get';
+import set from 'lodash/set';
+import toPath from 'lodash/toPath';
+import { withParams } from 'vuelidate/lib/validators/common';
 
-export const serverValidityRuleKey = "serverValidity"; // TODO give user ability to customize
+export const serverValidityRuleKey = 'serverValidity'; // TODO give user ability to customize
 const _cache = {
   Vue: null,
-  ValidityStateComponent: null
+  ValidityStateComponent: null,
 };
 
 function getVue(rootVm) {
@@ -31,7 +31,7 @@ const getValidityStateComponentConstructor = Vue => {
     data: () => ({
       serverPaths: [], // TODO think how to rename it
       serverMap: {}, // TODO think how to rename it
-      serverFieldErrors: {}
+      serverFieldErrors: {},
     }),
     computed: {
       validation() {
@@ -40,14 +40,14 @@ const getValidityStateComponentConstructor = Vue => {
       proxy() {
         return {
           serverErrors: {
-            ...this.serverFieldErrors
+            ...this.serverFieldErrors,
           },
           setErrors: this.setErrors,
           setErrorsFor: this.setErrorsFor,
           getErrorTextFor: this.getErrorTextFor,
-          getValidationByPath: this.getValidationByPath
+          getValidationByPath: this.getValidationByPath,
         };
-      }
+      },
     },
     methods: {
       getValidationByPath(path) {
@@ -61,7 +61,7 @@ const getValidityStateComponentConstructor = Vue => {
         this.serverPaths.forEach(path => {
           let validation = {};
           const pathArray = toPath(path);
-          if (pathArray[pathArray.length - 1] === "*") {
+          if (pathArray[pathArray.length - 1] === '*') {
             path = path.slice(0, -2);
             const observable = get(this.validatedComponent, path);
             Object.keys(observable).forEach(field => {
@@ -91,8 +91,8 @@ const getValidityStateComponentConstructor = Vue => {
               }
               lastValue = value;
               return !(this.serverFieldErrors && this.serverFieldErrors[field]);
-            }
-          )
+            },
+          ),
         };
       },
       setErrors(errors = {}) {
@@ -104,8 +104,8 @@ const getValidityStateComponentConstructor = Vue => {
       getErrorTextFor(path, field) {
         const serverField = this.serverMap[path] || field;
         return this.serverFieldErrors && this.serverFieldErrors[serverField];
-      }
-    }
+      },
+    },
   });
 
   _cache.ValidityStateComponent = component;
@@ -114,7 +114,7 @@ const getValidityStateComponentConstructor = Vue => {
 
 const createValidityStateComponent = (
   validatedComponent,
-  { serverPaths = [], serverMap = {}, serverFieldErrors = {} }
+  { serverPaths = [], serverMap = {}, serverFieldErrors = {} },
 ) => {
   const Vue = getVue(validatedComponent);
   const ValidityStateComponent = getValidityStateComponentConstructor(Vue);
@@ -122,13 +122,13 @@ const createValidityStateComponent = (
     data: () => ({
       serverPaths,
       serverMap,
-      serverFieldErrors
+      serverFieldErrors,
     }),
     computed: {
       validatedComponent() {
         return validatedComponent;
-      }
-    }
+      },
+    },
   });
 };
 
@@ -175,7 +175,7 @@ export const validationImproverMixin = {
         }
       },
       options.validations,
-      this
+      this,
     );
     if (!options.computed) options.computed = {};
     if (options.computed.$validationHelpers) return;

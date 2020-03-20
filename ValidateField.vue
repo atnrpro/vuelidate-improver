@@ -1,10 +1,11 @@
 <script>
 import toPath from 'lodash/toPath';
 import { serverValidityRuleKey } from './validationMixin';
-import { normalizeChildren } from './utils'
+import { normalizeChildren } from './utils';
 
 const passwordMinLength = 6;
-const errorsTexts = { // TODO how to make it customizeble? mb it doesn't need where? and use third party library? for example https://github.com/dobromir-hristov/vuelidate-error-extractor
+const errorsTexts = {
+  // TODO how to make it customizeble? mb it doesn't need where? and use third party library? for example https://github.com/dobromir-hristov/vuelidate-error-extractor
   required: 'Заполните поле',
   email: 'Неверный формат',
   sameAs: 'Пароли не совпадают',
@@ -56,7 +57,12 @@ export default {
       return proxyPath !== '' ? `${proxyPath}.${this.path}` : this.path;
     },
     serverError() {
-      return { [serverValidityRuleKey]: this.getServerErrorTextFor(this.validationPath, this.name) };
+      return {
+        [serverValidityRuleKey]: this.getServerErrorTextFor(
+          this.validationPath,
+          this.name,
+        ),
+      };
     },
     errorMessage() {
       const validationDoesntExist = !this.validationByPath;
@@ -68,7 +74,12 @@ export default {
       if (!invalidKey) {
         return null;
       }
-      return this.serverError[invalidKey] || this.customErrorsTexts[invalidKey] || errorsTexts[invalidKey] || defaultErrorText;
+      return (
+        this.serverError[invalidKey] ||
+        this.customErrorsTexts[invalidKey] ||
+        errorsTexts[invalidKey] ||
+        defaultErrorText
+      );
     },
     showError() {
       return !!this.errorMessage && this.validationByPath.$dirty;

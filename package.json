@@ -34,7 +34,7 @@
   },
   "scripts": {
     "release": "standard-version -a & git push --follow-tags origin master",
-    "lint": "eslint ./**",
-    "lint-fix": "eslint --fix"
+    "lint": "eslint **.js **.vue",
+    "lint-fix": "eslint **.js **.vue --fix"
   }
 }
