@@ -168,7 +168,10 @@ export const validationImproverMixin = {
     this._validityStateComponent = createValidityStateComponent(this, settings);
     const options = this.$options;
     const Vue = getVue(this);
-    options.validations = Vue.config.optionMergeStrategies.validations(
+    const strategy =
+      Vue.config.optionMergeStrategies.validations ||
+      Vue.config.optionMergeStrategies.provide;
+    options.validations = strategy(
       function() {
         if (this.$validationHelpers) {
           return this._validityStateComponent.getValidations();
@@ -183,6 +186,10 @@ export const validationImproverMixin = {
       return this._validityStateComponent
         ? this._validityStateComponent.proxy
         : null;
+    };
+    if (options.computed.$v) return;
+    options.computed.$v = function() {
+      return this._vuelidate ? this._vuelidate.refs.$v.proxy : null;
     };
   },
   beforeDestroy() {
