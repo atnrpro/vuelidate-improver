@@ -32,10 +32,23 @@ const getValidityStateComponentConstructor = Vue => {
       serverPaths: [], // TODO think how to rename it
       serverMap: {}, // TODO think how to rename it
       serverFieldErrors: {},
+      connectednessOfFields: {},
     }),
     computed: {
       validation() {
         return this.validatedComponent.$v;
+      },
+      unlinkedErrors() {
+        let errors = {};
+        for (let fieldName in this.serverFieldErrors) {
+          if (!this.connectednessOfFields[fieldName]) {
+            errors[fieldName] = this.serverFieldErrors[fieldName];
+          }
+        }
+        return errors;
+      },
+      hasUnlinkedErrors() {
+        return !!Object.keys(this.unlinkedErrors).length;
       },
       proxy() {
         return {
@@ -46,6 +59,8 @@ const getValidityStateComponentConstructor = Vue => {
           setErrorsFor: this.setErrorsFor,
           getErrorTextFor: this.getErrorTextFor,
           getValidationByPath: this.getValidationByPath,
+          hasUnlinkedErrors: this.hasUnlinkedErrors,
+          unlinkedErrors: this.unlinkedErrors,
         };
       },
     },
@@ -96,13 +111,25 @@ const getValidityStateComponentConstructor = Vue => {
         };
       },
       setErrors(errors = {}) {
+        Object.keys(errors).forEach(fieldName => {
+          this.$set(this.connectednessOfFields, fieldName, false);
+        });
         this.serverFieldErrors = errors;
       },
-      setErrorsFor(field, errors) {
-        this.serverFieldErrors[field] = errors;
+      setErrorsFor(field, error) {
+        this.$set(this.connectednessOfFields, field, !error);
+        this.serverFieldErrors[field] = error;
       },
       getErrorTextFor(path, field) {
         const serverField = this.serverMap[path] || field;
+        if (
+          Object.prototype.hasOwnProperty.call(
+            this.connectednessOfFields,
+            serverField,
+          )
+        ) {
+          this.connectednessOfFields[serverField] = true;
+        }
         return this.serverFieldErrors && this.serverFieldErrors[serverField];
       },
     },
