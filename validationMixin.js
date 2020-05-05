@@ -32,7 +32,7 @@ const getValidityStateComponentConstructor = Vue => {
       serverPaths: [], // TODO think how to rename it
       serverMap: {}, // TODO think how to rename it
       serverFieldErrors: {},
-      connectednessOfFields: {},
+      connectionOfFields: {},
     }),
     computed: {
       validation() {
@@ -41,7 +41,7 @@ const getValidityStateComponentConstructor = Vue => {
       unlinkedErrors() {
         let errors = {};
         for (let fieldName in this.serverFieldErrors) {
-          if (!this.connectednessOfFields[fieldName]) {
+          if (!this.connectionOfFields[fieldName]) {
             errors[fieldName] = this.serverFieldErrors[fieldName];
           }
         }
@@ -112,23 +112,23 @@ const getValidityStateComponentConstructor = Vue => {
       },
       setErrors(errors = {}) {
         Object.keys(errors).forEach(fieldName => {
-          this.$set(this.connectednessOfFields, fieldName, false);
+          this.$set(this.connectionOfFields, fieldName, false);
         });
         this.serverFieldErrors = errors;
       },
       setErrorsFor(field, error) {
-        this.$set(this.connectednessOfFields, field, !error);
+        this.$set(this.connectionOfFields, field, !error);
         this.serverFieldErrors[field] = error;
       },
       getErrorTextFor(path, field) {
         const serverField = this.serverMap[path] || field;
         if (
           Object.prototype.hasOwnProperty.call(
-            this.connectednessOfFields,
+            this.connectionOfFields,
             serverField,
           )
         ) {
-          this.connectednessOfFields[serverField] = true;
+          this.connectionOfFields[serverField] = true;
         }
         return this.serverFieldErrors && this.serverFieldErrors[serverField];
       },
