@@ -118,7 +118,7 @@ const getValidityStateComponentConstructor = Vue => {
       },
       setErrorsFor(field, error) {
         this.$set(this.connectionOfFields, field, !error);
-        this.serverFieldErrors[field] = error;
+        this.$set(this.serverFieldErrors, field, error);
       },
       getErrorTextFor(path, field) {
         const serverField = this.serverMap[path] || field;

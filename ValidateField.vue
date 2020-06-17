@@ -75,7 +75,7 @@ export default {
         return null;
       }
       return (
-        this.serverError[invalidKey] ||
+        this.serverError[serverValidityRuleKey] ||
         this.customErrorsTexts[invalidKey] ||
         errorsTexts[invalidKey] ||
         defaultErrorText
