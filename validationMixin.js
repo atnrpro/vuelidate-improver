@@ -63,6 +63,9 @@ const getValidityStateComponentConstructor = Vue => {
           unlinkedErrors: this.unlinkedErrors,
         };
       },
+      validations() {
+        return this.getValidations();
+      },
     },
     methods: {
       getValidationByPath(path) {
@@ -201,7 +204,7 @@ export const validationImproverMixin = {
     options.validations = strategy(
       function() {
         if (this.$validationHelpers) {
-          return this._validityStateComponent.getValidations();
+          return this._validityStateComponent.validations;
         }
       },
       options.validations,
