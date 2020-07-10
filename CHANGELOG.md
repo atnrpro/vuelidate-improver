@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.2](https://github.com/atnrpro/vuelidate-improver/compare/v1.2.1...v1.2.2) (2020-07-10)
+
+
+### Bug Fixes
+
+* recalculate validations only on change ([5b4e5f8](https://github.com/atnrpro/vuelidate-improver/commit/5b4e5f87d6a955edf72aab007d2ba36961880635))
+
 ### [1.2.1](https://github.com/atnrpro/vuelidate-improver/compare/v1.2.0...v1.2.1) (2020-06-17)
 
 
