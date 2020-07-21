@@ -103,12 +103,15 @@ const getValidityStateComponentConstructor = Vue => {
         return {
           [serverValidityRuleKey]: withParams(
             { type: serverValidityRuleKey },
-            value => {
+            function(value) {
               if (lastValue !== value && lastValue !== undefined) {
-                this.setErrorsFor(field, null);
+                this._validityStateComponent.setErrorsFor(field, null);
               }
               lastValue = value;
-              return !(this.serverFieldErrors && this.serverFieldErrors[field]);
+              const error = this._validityStateComponent.serverFieldErrors[
+                field
+              ];
+              return !error;
             },
           ),
         };
